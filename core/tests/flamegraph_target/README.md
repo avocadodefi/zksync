@@ -15,7 +15,7 @@ Since the goal is to avoid _everything_ that is not related to the analysis of t
 "hidden" runtime logic such as async runtimes (e.g. `tokio::main`) or logging (e.g. `vlog`) in this crate. If the code
 you are going to analyze requires `async` support, explicitly create the runtime for said code only.
 
-Target code should be written in a manner that stresses component in the most possible way. If your code needs
+Target code should be written in a manner that stresses the component as much as possible. If your code needs
 initialization, separate it from the actual stressing logic, so they can be easily distinguished in the resulting flamegraph.
 
 That being said, the code is just a playground. It is expected to be adjusted to what you need, so it is OK to keep the
