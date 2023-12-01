@@ -18,6 +18,5 @@ you are going to analyze requires `async` support, explicitly create the runtime
 Target code should be written in a manner that stresses the component as much as possible. If your code needs
 initialization, separate it from the actual stressing logic, so they can be easily distinguished in the resulting flamegraph.
 
-That being said, the code is just a playground. It is expected to be adjusted to what you need, so it is OK to keep the
-code simple to parameterize with loops, constants, and whatever else helps you achieve representative performance
-charts.
+That being said, the code is just a playground. It is expected to be adjusted to what you need.
+Therefore, it's acceptable to simplify the code, making it easy to parameterize with loops, constants, and anything else that aids in achieving representative performance charts.
