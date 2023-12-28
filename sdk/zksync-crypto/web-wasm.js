@@ -1,76 +1,54 @@
-const fs = require('fs');
+import fs from 'fs';
 
 const wasmFile = './dist/zksync-crypto-web_bg.wasm';
 const jsFile = './dist/zksync-crypto-web.js';
-// The output of wasm2js with a fixed import.
 const asmJsFile = './zksync-crypto-bundler_asm.js';
 
 const wasmData = fs.readFileSync(wasmFile);
 
-// Strings that are inserted automatically by wasm-pack, but
-// break library in it's current implementation
 const brokenStrings = [
-    // This substring is unique, had to
-    // write only part of line to make the RegExp works.
-    // Probably will rewrite in the future
     `input = import.meta.url.replace`,
     `input = new URL`
 ];
 
-let jsCode = fs.readFileSync(jsFile).toString();
+let jsCode = fs.readFileSync(jsFile, 'utf8');
 
-// Commenting out broken strings
-brokenStrings.forEach((str) => {
-    jsCode = jsCode.replace(new RegExp(str, 'g'), '// ' + str);
+brokenStrings.forEach(str => {
+    jsCode = jsCode.replace(new RegExp(str, 'g'), `// ${str}`);
 });
 
 jsCode += `
 const base64WasmCode = \`${wasmData.toString('base64')}\`;
 
-function base64ToArrayBuffer(base64) {
+const base64ToArrayBuffer = base64 => {
   const binaryString = window.atob(base64);
-  const length = binaryString.length;
-  const bytes = new Uint8Array(length);
-
-  for (let i = 0; i < length; i++) {
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
   }
   return bytes.buffer;
-}
+};
 
 const wasmBytes = base64ToArrayBuffer(base64WasmCode);
 
 const wasmResponseInit = {
-  "status" : 200 ,
-  "statusText" : "ok.",
-  headers: {
+  "status" : 200,
+  "statusText" : "ok",
+  "headers": {
     'Content-Type': 'application/wasm',
     'Content-Length': wasmBytes.length
   }
 };
 
-export function wasmSupported() {
-  try {
-    if (typeof WebAssembly === 'object') {
-      return true;
-    }
-  } catch (e) {
-  }
-  return false;
-}
+export const wasmSupported = () => typeof WebAssembly === 'object';
 
-export async function loadZkSyncCrypto(wasmFileUrl) {
+export const loadZkSyncCrypto = async (wasmFileUrl = '') => {
   if (!wasmSupported()) {
-    // Use the bundler build.
-    return require(\'${asmJsFile}\');
+    return import('${asmJsFile}');
   }
-  if (!wasmFileUrl) {
-    const wasmResponse = new Response(wasmBytes, wasmResponseInit);
-    await init(wasmResponse);
-  } else {
-    await init(DefaultZksyncCryptoWasmURL);
-  }
-}
+  const response = wasmFileUrl ? await fetch(wasmFileUrl) : new Response(wasmBytes, wasmResponseInit);
+  await init(response);
+};
 `;
 
 fs.writeFileSync(jsFile, jsCode);
